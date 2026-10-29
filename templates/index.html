@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Topología E96</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+        
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050507;
+            --glass-bg: rgba(16, 16, 24, 0.75);
+            --glass-border: rgba(0, 243, 255, 0.25);
+        }
+        
+        body {
+            margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif;
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(188, 19, 254, 0.1), transparent 25%),
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+            color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+
+        .dashboard {
+            display: grid; grid-template-columns: 350px 1fr; gap: 30px;
+            max-width: 1200px; width: 95%; margin: 40px auto;
+        }
+
+        @media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
+
+        .glass-panel {
+            background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 15px; padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); font-size: 1.5rem;
+            text-transform: uppercase; letter-spacing: 2px; margin-top: 0;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .control-group { margin-bottom: 25px; }
+        label { display: block; color: #a0aec0; font-size: 1.1rem; margin-bottom: 10px; letter-spacing: 1px; }
+
+        input, select {
+            width: 100%; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border);
+            color: #fff; padding: 12px 15px; font-family: 'Rajdhani', sans-serif; font-size: 1.2rem;
+            border-radius: 8px; box-sizing: border-box; transition: all 0.3s ease;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+        option { background: #0a0a0f; color: #fff; }
+
+        button.btn-primary {
+            width: 100%; background: transparent; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem; font-weight: bold; padding: 15px; border: 2px solid var(--neon-cyan);
+            border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+        button.btn-primary:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.6); }
+
+        button.btn-secondary {
+            width: 100%; background: rgba(0, 243, 255, 0.05); color: #a0aec0; font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem; padding: 10px; border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.3s ease;
+        }
+        button.btn-secondary:hover { background: rgba(0, 243, 255, 0.15); color: #fff; border-color: var(--neon-cyan); }
+
+        .results-area { display: flex; flex-direction: column; gap: 20px; }
+
+        .empty-state {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            color: #4a5568; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; text-align: center;
+            border: 1px dashed #2d3748; border-radius: 15px; padding: 40px;
+        }
+
+        .config-card {
+            background: rgba(0, 0, 0, 0.5); border-left: 4px solid var(--neon-purple); border-radius: 8px;
+            padding: 20px; animation: slideIn 0.4s ease-out; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .config-title { font-family: 'Orbitron', sans-serif; color: var(--neon-purple); font-size: 1.1rem; margin: 0; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
+        .status-pass { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid #00ff88; }
+        .status-fail { background: rgba(255, 51, 102, 0.1); color: #ff3366; border: 1px solid #ff3366; }
+
+        .resistor-display {
+            display: flex; align-items: center; gap: 20px; margin-top: 15px;
+            background: rgba(255, 255, 255, 0.03); padding: 12px 15px; border-radius: 8px;
+        }
+        .val-text { font-family: 'Orbitron', sans-serif; color: #fff; font-size: 1.1rem; letter-spacing: 1px; }
+
+        /* Resistencia 3D */
+        .res-drawing { display: flex; align-items: center; position: relative; }
+        .wire { width: 30px; height: 4px; background: linear-gradient(90deg, #4a5568, #cbd5e1); box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .body { 
+            width: 100px; height: 30px; border-radius: 6px; border: 1px solid #1a202c; display: flex; justify-content: space-around; 
+            padding: 0 5px; box-shadow: inset 0 8px 10px rgba(255,255,255,0.25), inset 0 -8px 10px rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .body.carbon { background: linear-gradient(180deg, #e6b981, #c49a6c, #8b5a2b); }
+        .body.metal { background: linear-gradient(180deg, #9fd3c7, #78b8a8, #3b7a6a); }
+        .band { width: 7px; height: 100%; box-shadow: 2px 0 4px rgba(0,0,0,0.4); opacity: 0.9; }
+        #errorMsg { color: #ff3366; font-family: 'Orbitron', sans-serif; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
+
+        /* Modal Manual de Usuario */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: var(--dark-bg); border: 1px solid var(--neon-cyan);
+            border-radius: 15px; max-width: 600px; width: 90%; padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2); position: relative;
+        }
+        .modal-content h2 { font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); margin-top: 0; }
+        .modal-content p, .modal-content li { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 10px; line-height: 1.5; }
+        .modal-content ul { padding-left: 20px; }
+        .btn-close {
+            position: absolute; top: 20px; right: 20px; background: transparent; border: none;
+            color: #ff3366; font-family: 'Orbitron', sans-serif; font-size: 1.5rem; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Panel Izquierdo: Controles -->
+        <div class="glass-panel">
+            <h1 id="mainTitle">Analizador E-96</h1>
+            
+            <div class="control-group">
+                <label>OBJETIVO (Ω)</label>
+                <input type="text" id="obj" value="4.7k" placeholder="Ej. 330, 1M, 4.7k">
+            </div>
+            
+            <div class="control-group">
+                <label>TOLERANCIA</label>
+                <select id="tol" onchange="actualizarTitulo()">
+                    <option value="10% (E12)">E12 (10%) - Estándar</option>
+                    <option value="5% (E24)">E24 (5%) - Precisión Media</option>
+                    <option value="1% (E96)" selected>E96 (1%) - Alta Precisión</option>
+                </select>
+            </div>
+            
+            <button onclick="calcular()" id="btn" class="btn-primary">INICIAR BÚSQUEDA</button>
+            <button onclick="abrirManual()" class="btn-secondary">💡 MANUAL DE USUARIO</button>
+            <div id="errorMsg"></div>
+        </div>
+
+        <!-- Panel Derecho: Resultados -->
+        <div class="glass-panel">
+            <div id="results" class="results-area">
+                <div class="empty-state">
+                    <div>
+                        ESPERANDO PARÁMETROS...<br>
+                        <span style="font-size: 0.9rem; color: #718096; margin-top: 10px; display: block; font-family: 'Rajdhani', sans-serif;">Ingresa un valor para simular topologías óptimas.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal del Manual de Usuario -->
+    <div id="manualModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="btn-close" onclick="cerrarManual()">X</button>
+            <h2>💡 GUÍA DE OPERACIÓN</h2>
+            <p>Este sistema calcula las combinaciones comerciales más exactas para tu circuito electrónico.</p>
+            <ul>
+                <li><strong>Entrada Inteligente:</strong> Puedes escribir números directos (ej. <code>330</code>) o usar prefijos de ingeniería: <code>k</code> (Kilo), <code>M</code> (Mega), <code>m</code> (Mili), o <code>G</code> (Giga). También soporta comas decimales (ej. <code>4,7k</code>).</li>
+                <li><strong>Cálculo de Topologías:</strong> El motor matemático evaluará circuitos de 1, 2 y 3 resistores en configuraciones de Serie, Paralelo y Mixtas.</li>
+                <li><strong>Códigos de Color Físicos:</strong> La interfaz renderiza cómo se verán los componentes en la vida real. Fondo beige para componentes de carbón (5/10%) y fondo azul para componentes de película metálica de precisión (1%).</li>
+            </ul>
+            <p style="color: var(--neon-purple); font-weight: bold; font-style: italic; margin-top: 20px;">
+                Desarrollado para Ingeniería en Comunicaciones y Electrónica.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function actualizarTitulo() {
+            const tol = document.getElementById('tol').value;
+            const titulo = document.getElementById('mainTitle');
+            if (tol.includes("E12")) titulo.innerText = "Analizador E-12";
+            else if (tol.includes("E24")) titulo.innerText = "Analizador E-24";
+            else titulo.innerText = "Analizador E-96";
+        }
+
+        function abrirManual() { document.getElementById('manualModal').style.display = 'flex'; }
+        function cerrarManual() { document.getElementById('manualModal').style.display = 'none'; }
+
+        async function calcular() {
+            const btn = document.getElementById('btn');
+            const errorMsg = document.getElementById('errorMsg');
+            const resultsDiv = document.getElementById('results');
+            
+            btn.innerText = "CALCULANDO...";
+            btn.style.background = "var(--neon-purple)";
+            btn.style.borderColor = "var(--neon-purple)";
+            btn.style.color = "#000";
+            btn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            try {
+                const res = await fetch('/calcular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resistencia: document.getElementById('obj').value,
+                        tolerancia: document.getElementById('tol').value
+                    })
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    errorMsg.innerText = "ERROR: " + data.error;
+                    errorMsg.style.display = 'block';
+                    resultsDiv.innerHTML = '<div class="empty-state">ANÁLISIS ABORTADO</div>';
+                } else {
+                    let html = `
+                        <div style="margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+                            <span style="color: #a0aec0; font-size: 1.1rem; letter-spacing: 1px; font-weight: bold;">RESULTADOS PARA:</span>
+                            <h2 style="margin: 5px 0 0 0; font-family: 'Orbitron', sans-serif; color: #fff; font-size: 2.2rem;">
+                                ${data.objetivo} Ω <span style="font-size: 1.2rem; color: var(--neon-cyan);">±${data.margen}%</span>
+                            </h2>
+                        </div>
+                    `;
+                    
+                    data.resultados.forEach(r => {
+                        html += `
+                        <div class="config-card">
+                            <div class="config-header">
+                                <h3 class="config-title">⯈ ${r.tipo.toUpperCase()}</h3>
+                                <span class="status-badge ${r.cumple ? 'status-pass' : 'status-fail'}">${r.error}% ERROR</span>
+                            </div>
+                            <div style="color: #cbd5e1; font-size: 1.2rem; margin-bottom: 15px; font-weight: bold;">
+                                Equivalente: <strong style="color: #fff; font-size: 1.4rem;">${r.equivalente} Ω</strong>
+                            </div>
+                        `;
+                        
+                        r.componentes.forEach(c => {
+                            let bandas = c.colores_hex.map(h => `<div class="band" style="background-color:${h}"></div>`).join('');
+                            html += `
+                            <div class="resistor-display">
+                                <div class="res-drawing">
+                                    <div class="wire"></div>
+                                    <div class="body ${c.es_precision ? 'metal' : 'carbon'}">${bandas}</div>
+                                    <div class="wire"></div>
+                                </div>
+                                <div class="val-text">${c.val_str}</div>
+                            </div>`;
+                        });
+                        html += `</div>`;
+                    });
+                    resultsDiv.innerHTML = html;
+                }
+            } catch (e) {
+                errorMsg.innerText = "FALLO DE CONEXIÓN CON EL SERVIDOR";
+                errorMsg.style.display = 'block';
+            }
+            
+            btn.innerText = "INICIAR BÚSQUEDA";
+            btn.style.background = "transparent";
+            btn.style.borderColor = "var(--neon-cyan)";
+            btn.style.color = "var(--neon-cyan)";
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
