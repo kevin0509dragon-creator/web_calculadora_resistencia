@@ -1,0 +1,1 @@
+# web_calculadora_resistencia
